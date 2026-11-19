@@ -126,7 +126,9 @@ inline void encode_for(const std::vector<uint64_t>& v, bool is_signed, std::vect
         for (uint64_t x : v) mn = std::min(mn, static_cast<int64_t>(x));
         put_svarint(out, mn);
         for (uint64_t x : v)
-            put_uvarint(out, static_cast<uint64_t>(static_cast<int64_t>(x) - mn));
+            // Unsigned subtraction: x >= mn always, but the signed difference can exceed
+            // INT64_MAX (e.g. 0 - INT64_MIN), which is undefined behaviour; the bytes are identical.
+            put_uvarint(out, x - static_cast<uint64_t>(mn));
     } else {
         uint64_t mn = std::numeric_limits<uint64_t>::max();
         for (uint64_t x : v) mn = std::min(mn, x);
@@ -222,7 +224,7 @@ inline bool decode_column(ByteReader& r, Encoding enc, PhysType t, size_t n,
             if (sgn) {
                 int64_t mn = r.svarint();
                 for (size_t i = 0; i < n; ++i)
-                    out.push_back(static_cast<uint64_t>(mn + static_cast<int64_t>(r.uvarint())));
+                    out.push_back(static_cast<uint64_t>(mn) + r.uvarint());  // wraps, defined
             } else {
                 uint64_t mn = r.uvarint();
                 for (size_t i = 0; i < n; ++i) out.push_back(mn + r.uvarint());

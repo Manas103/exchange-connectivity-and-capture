@@ -1,5 +1,5 @@
-/mnt/c/Users/Manas/Downloads/Total Job Application process flow/projects/market-data-tick-capture/include/column_codec.hpp:129:76: runtime error: signed integer overflow: 0 - -9223372036854775808 cannot be represented in type 'long int'
-/mnt/c/Users/Manas/Downloads/Total Job Application process flow/projects/market-data-tick-capture/include/column_codec.hpp:225:60: runtime error: signed integer overflow: -9223372036854775808 + -9223372036854775808 cannot be represented in type 'long int'
+ASan+UBSan run of correctness_test with halt_on_error=1, after the FOR-codec overflow fix. g++ 11.4.0, -fsanitize=address,undefined -O1 -g.
+
 === market-data-tick-capture correctness ===
 
 sha256 (FIPS 180-4 vectors)

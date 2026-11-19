@@ -633,10 +633,12 @@ tests/ouch_session_test.cpp Resend-on-reconnect correctness (a client
    union of both connections' sequence numbers is exactly {1..20}, each
    appearing once (`docs/ouch_session_test_output.txt`).
 3. **ASan+UBSan.** `correctness_test`, `ouch_session_test`, and a
-   scaled-down `live_capture_ab` run all clean under
-   `-fsanitize=address,undefined`
+   scaled-down `live_capture_ab` run clean under
+   `-fsanitize=address,undefined` with `halt_on_error=1`
    (`docs/correctness_test_san.txt`, `docs/ouch_session_test_san.txt`,
-   `docs/live_capture_ab_san.txt`).
+   `docs/live_capture_ab_san.txt`). An earlier version of this log was
+   reported as clean while it contained two UBSan signed-overflow reports;
+   see "UBSan reports were being read as a pass" under Findings below.
 
 ### Findings
 
@@ -657,6 +659,20 @@ The fix is one line, made once, process-wide:
 so every executable that uses `tcp_io.hpp` gets it automatically. This is
 precisely the kind of bug a disconnect-and-resume test is supposed to catch,
 and it did, immediately, on the first genuine attempt at that scenario.
+
+**UBSan reports were being read as a pass.** UBSan prints a "runtime error"
+and keeps running by default, so the first sanitizer log for
+`correctness_test` ended in "600 checks, 0 failures, PASS" and was recorded
+as clean, with two signed-overflow reports sitting above that line. Turning
+on `halt_on_error=1` in CI made the run fail immediately. The cause was in
+the frame-of-reference codec (`column_codec.hpp`): for a signed column it
+computed `x - min` in `int64_t`, which overflows when the column spans more
+than `INT64_MAX` (the test deliberately includes `0` and `INT64_MIN`), and
+the decoder's `min + offset` overflowed the same way. Both now do the
+arithmetic in `uint64_t`, where wraparound is defined; the encoded bytes are
+identical, so every existing capture still decodes and every digest above is
+unchanged. CI now runs the sanitizers with `halt_on_error=1`, so a report
+fails the build instead of scrolling past.
 
 **Tick-to-order latency took three genuine attempts to characterize
 correctly, and the honest number is the third one, not the first.** Attempt
