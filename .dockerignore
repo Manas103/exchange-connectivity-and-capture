@@ -1,0 +1,5 @@
+build*/
+repro_out/
+.git/
+docs/
+.venv/

@@ -25,7 +25,7 @@
 //    market-data decode time (there is no real tick here, only a timer
 //    start), network propagation beyond loopback, or the exchange's own
 //    processing and acknowledgment -- this is a one-way send-side number,
-//    named "tick-to-order" because that is the resume claim under test, not
+//    named "tick-to-order" because that is the usual name for this send-side cost, not
 //    a full order-to-ack round trip.
 #include <cstdio>
 #include <cstdint>
@@ -227,8 +227,8 @@ void test_tick_to_order_latency() {
     std::printf("iterations=%llu\n", (unsigned long long)kIterations);
     std::printf("tick_to_order  mean=%9.1fns  p50=%9.1fns  p90=%9.1fns  p99=%9.1fns  p99.9=%9.1fns  max=%9.1fns\n",
                 mean, pct(0.50), pct(0.90), pct(0.99), pct(0.999), latencies_ns.back());
-    std::printf("target: p99 < 10000ns (10us)\n");
-    std::printf("meets_claim: %s\n\n", pct(0.99) < 10000.0 ? "true" : "false");
+    std::printf("budget: p99 < 10000ns (10us)\n");
+    std::printf("within_budget: %s\n\n", pct(0.99) < 10000.0 ? "true" : "false");
 }
 
 }  // namespace

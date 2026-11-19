@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-test:
+    name: Build, tests and independent cross-checks
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Python dependencies
+        run: pip install -r requirements.txt
+      - name: Deterministic checks (tests, validator, risk, routing oracles, Parquet + DuckDB)
+        run: scripts/reproduce.sh
+      - name: Results match the committed outputs
+        run: |
+          set -e
+          grep -q "seeded defects: 280 of 280 caught with the failing check named" repro_out/docs/validator_defect_output.txt
+          grep -q "valid orders accepted          : 4500 / 4500" repro_out/docs/pre_trade_risk_output.txt
+          grep -q "fee savings vs best-price router   : 83.2401%" repro_out/docs/sor_fee_output.txt
+          diff <(tail -n 3 docs/routing_validation_output.txt) <(tail -n 3 repro_out/docs/routing_validation_output.txt)
+          diff <(tail -n 3 docs/sor_validation_output.txt) <(tail -n 3 repro_out/docs/sor_validation_output.txt)
+          diff docs/validate_publication_output.txt repro_out/docs/validate_publication_output.txt
+
+  sanitizers:
+    name: AddressSanitizer + UBSan
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer -g -O1" \
+            -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
+          cmake --build build -j4
+      - name: Tests under the sanitizers
+        env:
+          ASAN_OPTIONS: halt_on_error=1
+          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+        run: |
+          ./build/correctness_test
+          ./build/ouch_session_test
+          ./build/order_router_test
+          ./build/validator_defect_test

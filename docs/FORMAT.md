@@ -1,4 +1,4 @@
-# TCAP v1 — column-oriented tick capture format
+# TCAP v1: column-oriented tick capture format
 
 This is the authoritative specification. The C++ writer/reader
 (`include/tick_capture.hpp`) and the Python reader (`python/tickcap/reader.py`)
@@ -133,7 +133,7 @@ little-endian u32.
 | Offset | Size | Type | Field           |
 |-------:|-----:|------|-----------------|
 | 0      | 1    | u8   | `encoding`      |
-| 1      | 3    | —    | `reserved` (0)  |
+| 1      | 3    |,    | `reserved` (0)  |
 | 4      | 4    | u32  | `payload_bytes` |
 
 Directory entries are in schema column order, and payloads follow in the same
@@ -201,7 +201,7 @@ signed varint      v[2] - v[1]
 
 Decode by running addition from `v[0]`.
 
-### 6.3 DOD (2) — delta of delta
+### 6.3 DOD (2): delta of delta
 
 ```
 scalar             v[0]
@@ -215,7 +215,7 @@ Decode with two running sums: accumulate the signed varints to recover each
 successive difference, then accumulate those to recover values. Empty and
 single-value chunks write only what exists (nothing, or just the scalar).
 
-### 6.4 FOR (3) — frame of reference
+### 6.4 FOR (3): frame of reference
 
 ```
 scalar             base   (minimum value in the chunk)
@@ -282,7 +282,7 @@ A conforming reader **must** return records in capture order, which is the
 order they were appended, which is the order they arrived.
 
 Given those, re-encoding a capture reproduces the original transport byte
-stream exactly, and replaying it reproduces book state exactly — including
+stream exactly, and replaying it reproduces book state exactly, including
 per-order queue position, and including any sequence gaps the original session
 suffered. `replay_verify` checks all of this against SHA-256 digests recorded
 by the live run.

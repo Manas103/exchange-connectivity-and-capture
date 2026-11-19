@@ -26,7 +26,7 @@
 //           independently and compares against, and totals the fees paid
 //           under each strategy for the venue-fee-savings claim.
 //
-// Neither mode puts anything on a real wire -- that half of the claim
+// Neither mode puts anything on a real wire -- that half of the path
 // ("before the wire") is validated by construction: risk-rejected orders
 // never reach VenueRouter::route at all, and the actual OUCH order-entry
 // transport with its own measured tick-to-order latency is the existing

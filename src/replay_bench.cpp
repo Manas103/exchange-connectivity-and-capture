@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
     double median = pass_rates[pass_rates.size() / 2];
     std::printf("\nbest pass rate   : %.0f msgs/sec\n", best);
     std::printf("median pass rate : %.0f msgs/sec\n", median);
-    std::printf("target: 1,000,000+ msgs/sec sustained on one pinned core\n");
-    std::printf("meets_claim (best of %d passes): %s\n", passes, best >= 1'000'000.0 ? "true" : "false");
+    std::printf("budget: 1,000,000+ msgs/sec sustained on one pinned core\n");
+    std::printf("within_budget (best of %d passes): %s\n", passes, best >= 1'000'000.0 ? "true" : "false");
     return 0;
 }
